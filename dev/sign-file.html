@@ -1,0 +1,137 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>File signing tool</title>
+<style>
+  #drop_zone {
+    border: 2px dashed #BBB;
+    border-radius: 5px;
+    padding: 25px;
+    text-align: center;
+    color: #BBB;
+  }
+  textarea {width: 100%; min-height: 20vh;}
+  #privateKey, #publicKey {width: 100%; width: calc(50% - 0.75em); }
+</style>
+<textarea id="privateKey" placeholder="Insert your private key here. Type 'random' to generate a new one."></textarea>
+<textarea id="publicKey" placeholder="If a key is generated then the public key will be returned here" readonly></textarea>
+<div id="drop_zone">Drop files here</div>
+<output id="list"></output>
+<script>
+  (function () {
+    'use strict';
+    /* Helper function used for converting UTF-8 to Uint8Array */
+    function decodeUTF8(s) {
+      var i, d = unescape(encodeURIComponent(s)), b = new Uint8Array(d.length);
+      for (i = 0; i < d.length; i++) {b[i] = d.charCodeAt(i);}
+      return b;
+    }
+    
+    /* Helper function used for converting Uint8Array to Base64 */
+    function encodeBase64(arr) {
+      var i, s = [], len = arr.length;
+      for (i = 0; i < len; i++) s.push(String.fromCharCode(arr[i]));
+      return btoa(s.join(''));
+    }
+
+    var listEl = document.getElementById('list');
+    var privateKeyEl = document.getElementById('privateKey');
+    var publicKeyEl = document.getElementById('publicKey');
+    
+    var privateKeyPromise = Promise.resolve();
+    
+    privateKeyEl.addEventListener('input', function () {
+      var keyData = privateKeyEl.value;
+      
+      if (keyData === 'random') {
+        crypto.subtle.generateKey({
+          name: 'ECDSA', namedCurve: 'P-384',
+        }, true, ['sign', 'verify'])
+        .then(function (key) {
+          privateKeyPromise = Promise.resolve(key.privateKey);
+          
+          return Promise.all([
+            key.publicKey,
+            key.privateKey
+          ].map(function (key) {
+            return crypto.subtle.exportKey('jwk', key);
+          }));
+        }).then(function (keys) {
+          publicKeyEl.value = JSON.stringify(keys[0]);
+          privateKeyEl.value = JSON.stringify(keys[1]);
+        }).catch(function () {
+          privateKeyEl.value = 'Key generation failed';
+        });
+        return;
+      }
+      
+           
+      try {
+        keyData = JSON.parse(keyData);
+      } catch(e) {
+        return;
+      }
+      
+      privateKeyPromise = crypto.subtle.importKey(
+        "jwk", keyData, {
+          name: 'ECDSA',
+          namedCurve: 'P-384'
+        }, true, ['sign']
+      ).then(function (key) {
+        publicKeyEl.value = 'Public key can\'t be extracted from the private key with WebCrypto...';
+        return key;
+      }, function (err) {
+        publicKeyEl.value = err;
+      });
+    });
+      
+    // Setup the dnd listeners.
+    var dropZone = document.getElementById('drop_zone');
+    dropZone.addEventListener('dragover', function handleDragOver(evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+      evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+    }, false);
+    
+    dropZone.addEventListener('drop', function handleFileSelect(evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+
+      var files = evt.dataTransfer.files; // FileList object.
+
+      // files is a FileList of File objects. List some properties.
+      for (let i = 0, f; f = files[i]; i++) {
+        var reader = new FileReader();
+
+          // Closure to capture the file information.
+          reader.onload = function(event) {
+            var readFile = event.target.result;
+            var metadata = [f.name, (new Date()).toISOString()];
+            var data = JSON.stringify(metadata) + ';\n' + readFile;
+            
+            privateKeyPromise.then(function (privateKey) {
+              if (!privateKey) {
+                addResult('Private key is not defined');
+                return;
+              }
+            
+              crypto.subtle.sign({name: "ECDSA", hash: {name: "SHA-512"}}, privateKey, decodeUTF8(data))
+              .then(function (signature) {
+                addResult(JSON.stringify(metadata.concat(encodeBase64(new Uint8Array(signature)))) + ';\n' + readFile);
+              }, function() {
+                addResult('Signing failed');
+              });
+            });
+          };
+
+          // Read in the image file as a data URL.
+          reader.readAsText(f);
+      }
+    }, false);
+    
+    function addResult(value){
+      var result = document.createElement('textarea');
+      result.value = value;
+      listEl.appendChild(result);
+    }
+  }());
+</script>

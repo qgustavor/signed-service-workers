@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Signed Service Workers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  (function () {
+    navigator.serviceWorker.register('loader.js', { scope: '.' })
+    .then(function () {
+      document.getElementById('output-message')
+      .innerHTML = 'Service Worker is working!';
+    }, function (err) {
+      document.getElementById('output-message')
+      .innerHTML = 'An error ocurred, check developer console.';
+      
+      // throw should work in native Promises:
+      throw err;
+    });
+    
+    var jsStyle = document.createElement('style');
+    jsStyle.innerHTML = '#no-script{display:none}';
+    document.head.appendChild(jsStyle);
+  }());
+</script>
+<style>html{padding:1em;background:#f8f8f8;color:#333;text-align:center;font:2em sans-serif}</style>
+<div id="no-script">Service Workers can only work if JavaScript is enabled.</div>
+<div id="output-message"></div>
