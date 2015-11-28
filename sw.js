@@ -1,3 +1,4 @@
+["sw.js","2015-11-28T20:04:29.006Z","AwmiPlNU0P2nHgyasgaREfuAWWdEHFjcKxgCQ3lp6Oo1trtsv2iZZ1gAIKHHZtUgmgcnZkf1jJeeUpHiKxI4w3VaXMoUPC0QgAEpamGTJie8+iFP2Xya/h0SFnyfN2wC"];
 'use strict';
 
 // Based on this gist: https://gist.github.com/adactio/4d588bb8a65fa11a3ea3
