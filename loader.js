@@ -396,7 +396,8 @@ function handleCallbacks () {
             // Allow the snippet to be run via CSP:
             if (headers['content-security-policy']) {
               headers['content-security-policy'] = headers['content-security-policy']
-              .replace(/(^|;)(\s*(?:default|script)-src[^;]*)/gi, "$1$2 'sha256-" + snippetHash + "'")
+              .replace(/(;\s*script-src|$)/, '; script-src')
+              .replace(/(^|;)(\s*script-src[^;]*)/gi, "$1$2 'sha256-" + snippetHash + "'")
             }
           
             // Close tags which may prevent script tags from working
