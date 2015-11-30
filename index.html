@@ -7,7 +7,13 @@
     var jsStyle = document.createElement('style');
     jsStyle.innerHTML = '#no-script{display:none}';
     document.head.appendChild(jsStyle);
-    
+  }());
+</script>
+<style>html{padding:1em;background:#f8f8f8;color:#333;text-align:center;font:2em sans-serif}</style>
+<div id="no-script">Service Workers can only work if JavaScript is enabled.</div>
+<div id="output-message"></div>
+<script>
+  (function () {
     if (!navigator.serviceWorker) {
       document.getElementById('output-message')
       .innerHTML = 'Service Workers are not supported';
@@ -27,6 +33,4 @@
     });
   }());
 </script>
-<style>html{padding:1em;background:#f8f8f8;color:#333;text-align:center;font:2em sans-serif}</style>
-<div id="no-script">Service Workers can only work if JavaScript is enabled.</div>
-<div id="output-message"></div>
+
