@@ -63,20 +63,11 @@ const PUBLIC_KEY_PROMISE = crypto.subtle.importKey('jwk',
   { name: 'ECDSA', namedCurve: 'P-384' }, false, ['verify']
 );
 
-let state, pendingPromises, cachedScript, cachedMetadata, fetchHandler;
+let state, pendingPromises, cachedScript, cachedMetadata, fetchHandler, snippetHash;
 const addListener = self.addEventListener.bind(self);
 
 // Initialize:
 init();
-
-// Reset state (on init and generally after a time out)
-function resetState() {
-  state = STATES_ENUM.LOADING;
-  pendingPromises = [];
-  fetchHandler = [];
-  cachedScript = '';
-  cachedMetadata = [];
-}
 
 function init() {
   // Initialize variables:
@@ -126,6 +117,22 @@ function init() {
     dbRequest.onsuccess = null;
     fetchViaHttp();
   };
+  
+  // Calculate snippet SHA-256 hash, for CSP:
+  crypto.subtle.digest({ name: 'SHA-256' }, new Uint8Array(
+    ('(' + handleProblems + '())').split('').map(e => e.charCodeAt(0))
+  )).then(function (hash) {
+    snippetHash = btoa(String.fromCharCode.apply(null, new Uint8Array(hash)));
+  });
+}
+
+// Reset state (on init and generally after a time out)
+function resetState() {
+  state = STATES_ENUM.LOADING;
+  pendingPromises = [];
+  fetchHandler = [];
+  cachedScript = '';
+  cachedMetadata = [];
 }
 
 /* Helper function used for converting UTF-8 to Uint8Array */
@@ -387,6 +394,12 @@ function handleCallbacks () {
           
           // If the requested page is HTML then inject problem handler:
           if (promise.event.request.headers.get('Accept').indexOf('text/html') !== -1) {
+            // Allow the snippet to be run via CSP:
+            if (headers['content-security-policy']) {
+              headers['content-security-policy'] = headers['content-security-policy']
+              .replace(/(^|;)(\s*(?:default|script)-src[^;]*)/gi, "$1$2 'sha256-" + snippetHash + "'")
+            }
+          
             // Close tags which may prevent script tags from working
             // This RegExp can be used because those tags don't accept any other tag inside
             var FIX_REGEX = /(<((no)?script|textarea|style|title|canvas|picture)\b[^<]*(?:(?!<\/\2>)<[^<]*)*$)/gi;
