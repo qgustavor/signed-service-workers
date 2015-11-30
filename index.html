@@ -14,19 +14,17 @@
 <div id="output-message"></div>
 <script>
   (function () {
+    var outputEl = document.getElementById('output-message')
     if (!navigator.serviceWorker) {
-      document.getElementById('output-message')
-      .innerHTML = 'Service Workers are not supported';
+      outputEl.innerHTML = 'Service Workers are not supported';
       return;
     }
   
     navigator.serviceWorker.register('loader.js', { scope: '.' })
     .then(function () {
-      document.getElementById('output-message')
-      .innerHTML = 'Service Worker is working!';
+      outputEl.innerHTML = 'Service Worker is working!';
     }, function (err) {
-      document.getElementById('output-message')
-      .innerHTML = 'An error ocurred, check developer console.';
+      outputEl.innerHTML = 'An error ocurred, check developer console.';
       
       // throw should work in native Promises:
       throw err;
