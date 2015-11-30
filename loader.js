@@ -56,26 +56,18 @@ const STATES_ENUM = {
 };
 
 const PUBLIC_KEY_PROMISE = crypto.subtle.importKey('jwk',
-  {crv: 'P-384', ext: true, key_ops:['verify'], kty:'EC',
-  x: 'g5Jj0GDpNCxXh5dVKKlDiWk6eA3mKC9s7DGofdRlJDGC1vZRIYCuU3ozGyQPzyR0',
-  y: 'vWlfjwlAzBraPQ4wlZLuGXpaQht-RVXdRKPd4C0dQpB4HiPFnB6xVtHz0PL1upU6'},
+  // The public key NEEDS to be changed, otherwise it will not work
+  {crv: 'P-384', ext: true, key_ops:['verify'], kty : 'EC',
+  x: 'f_sk32qcccaM-_dQwBLBfG--_HmmcayK4zRV8mF_BoLNnIAKUImnlBOlPLteBUhn',
+  y: '2CsW_CSFnZA5BvDghFmZvTOwicbFujQxv2ZrW1fNWV_U6-72Y1IAFFks2ty4y13a'},
   { name: 'ECDSA', namedCurve: 'P-384' }, false, ['verify']
 );
 
-let state, pendingPromises, cachedScript, cachedMetadata, fetchHandler;
+let state, pendingPromises, cachedScript, cachedMetadata, fetchHandler, snippetHash;
 const addListener = self.addEventListener.bind(self);
 
 // Initialize:
 init();
-
-// Reset state (on init and generally after a time out)
-function resetState() {
-  state = STATES_ENUM.LOADING;
-  pendingPromises = [];
-  fetchHandler = [];
-  cachedScript = '';
-  cachedMetadata = [];
-}
 
 function init() {
   // Initialize variables:
@@ -125,6 +117,22 @@ function init() {
     dbRequest.onsuccess = null;
     fetchViaHttp();
   };
+  
+  // Calculate snippet SHA-256 hash, for CSP:
+  crypto.subtle.digest({ name: 'SHA-256' }, new Uint8Array(
+    ('(' + handleProblems + '())').split('').map(e => e.charCodeAt(0))
+  )).then(function (hash) {
+    snippetHash = btoa(String.fromCharCode.apply(null, new Uint8Array(hash)));
+  });
+}
+
+// Reset state (on init and generally after a time out)
+function resetState() {
+  state = STATES_ENUM.LOADING;
+  pendingPromises = [];
+  fetchHandler = [];
+  cachedScript = '';
+  cachedMetadata = [];
 }
 
 /* Helper function used for converting UTF-8 to Uint8Array */
@@ -386,6 +394,12 @@ function handleCallbacks () {
           
           // If the requested page is HTML then inject problem handler:
           if (promise.event.request.headers.get('Accept').indexOf('text/html') !== -1) {
+            // Allow the snippet to be run via CSP:
+            if (headers['content-security-policy']) {
+              headers['content-security-policy'] = headers['content-security-policy']
+              .replace(/(^|;)(\s*(?:default|script)-src[^;]*)/gi, "$1$2 'sha256-" + snippetHash + "'")
+            }
+          
             // Close tags which may prevent script tags from working
             // This RegExp can be used because those tags don't accept any other tag inside
             var FIX_REGEX = /(<((no)?script|textarea|style|title|canvas|picture)\b[^<]*(?:(?!<\/\2>)<[^<]*)*$)/gi;
