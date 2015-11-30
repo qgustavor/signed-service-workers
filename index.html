@@ -4,6 +4,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
   (function () {
+    var jsStyle = document.createElement('style');
+    jsStyle.innerHTML = '#no-script{display:none}';
+    document.head.appendChild(jsStyle);
+    
+    if (!navigator.serviceWorker) {
+      document.getElementById('output-message')
+      .innerHTML = 'Service Workers are not supported';
+      return;
+    }
+  
     navigator.serviceWorker.register('loader.js', { scope: '.' })
     .then(function () {
       document.getElementById('output-message')
@@ -15,10 +25,6 @@
       // throw should work in native Promises:
       throw err;
     });
-    
-    var jsStyle = document.createElement('style');
-    jsStyle.innerHTML = '#no-script{display:none}';
-    document.head.appendChild(jsStyle);
   }());
 </script>
 <style>html{padding:1em;background:#f8f8f8;color:#333;text-align:center;font:2em sans-serif}</style>
