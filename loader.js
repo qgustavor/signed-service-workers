@@ -56,10 +56,9 @@ const STATES_ENUM = {
 };
 
 const PUBLIC_KEY_PROMISE = crypto.subtle.importKey('jwk',
-  // The public key NEEDS to be changed, otherwise it will not work
-  {crv: 'P-384', ext: true, key_ops:['verify'], kty : 'EC',
-  x: 'f_sk32qcccaM-_dQwBLBfG--_HmmcayK4zRV8mF_BoLNnIAKUImnlBOlPLteBUhn',
-  y: '2CsW_CSFnZA5BvDghFmZvTOwicbFujQxv2ZrW1fNWV_U6-72Y1IAFFks2ty4y13a'},
+  {crv: 'P-384', ext: true, key_ops:['verify'], kty:'EC',
+  x: 'g5Jj0GDpNCxXh5dVKKlDiWk6eA3mKC9s7DGofdRlJDGC1vZRIYCuU3ozGyQPzyR0',
+  y: 'vWlfjwlAzBraPQ4wlZLuGXpaQht-RVXdRKPd4C0dQpB4HiPFnB6xVtHz0PL1upU6'},
   { name: 'ECDSA', namedCurve: 'P-384' }, false, ['verify']
 );
 
