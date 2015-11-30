@@ -393,7 +393,7 @@ function handleCallbacks () {
           headers['x-content-type-options'] = 'nosniff';
           
           // If the requested page is HTML then inject problem handler:
-          if (promise.event.request.headers.get('Accept').indexOf('text/html') !== -1) {
+          if (headers['content-type'].indexOf('text/html') !== -1) {
             // Allow the snippet to be run via CSP:
             if (headers['content-security-policy']) {
               headers['content-security-policy'] = headers['content-security-policy']
