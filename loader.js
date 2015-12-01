@@ -19,7 +19,7 @@ const FILENAME = 'sw.js';
 const WEBSITE_NAME = 'Signed Service Workers'; /* the name may need localization */
 
 // The HTML comments prevent an unclosed HTML comment disabling this snippet:
-const CHECK_PROBLEMS_SNIPPET = '<!-- Alert user when Service Worker updates without cryptographic verification -->\n<script>(' + handleProblems + '())</script>';
+const CHECK_PROBLEMS_SNIPPET = '<!-- Alert user when Service Worker updates without cryptographic verification -->\n<script nonce="CSP_NONCE">(' + handleProblems + '())</script>';
 const GENERIC_HEADER = `<!DOCTYPE html>
 <html lang=en>
 <meta charset=utf-8>
@@ -62,7 +62,7 @@ const PUBLIC_KEY_PROMISE = crypto.subtle.importKey('jwk',
   { name: 'ECDSA', namedCurve: 'P-384' }, false, ['verify']
 );
 
-let state, pendingPromises, cachedScript, cachedMetadata, fetchHandler, snippetHash;
+let state, pendingPromises, cachedScript, cachedMetadata, fetchHandler;
 const addListener = self.addEventListener.bind(self);
 
 // Initialize:
@@ -116,13 +116,6 @@ function init() {
     dbRequest.onsuccess = null;
     fetchViaHttp();
   };
-  
-  // Calculate snippet SHA-256 hash, for CSP:
-  crypto.subtle.digest({ name: 'SHA-256' }, new Uint8Array(
-    ('(' + handleProblems + '())').split('').map(e => e.charCodeAt(0))
-  )).then(function (hash) {
-    snippetHash = btoa(String.fromCharCode.apply(null, new Uint8Array(hash)));
-  });
 }
 
 // Reset state (on init and generally after a time out)
@@ -394,10 +387,17 @@ function handleCallbacks () {
           // If the requested page is HTML then inject problem handler:
           if (headers['content-type'].indexOf('text/html') !== -1) {
             // Allow the snippet to be run via CSP:
-            if (headers['content-security-policy']) {
-              headers['content-security-policy'] = headers['content-security-policy']
-              .replace(/(;\s*script-src|$)/, '; script-src')
-              .replace(/(^|;)(\s*script-src[^;]*)/gi, "$1$2 'sha256-" + snippetHash + "'")
+            var cspHeader = headers['content-security-policy'];
+            var nonce = btoa(String.fromCharCode.apply(null, crypto.getRandomValues(new Uint8Array(16))));
+            
+            if (cspHeader) {
+              // If script-src isn't defined then copy default-src
+              if (!cspHeader.match(/(^|;)(\s*script-src\s*('none'|[^;]*))/)) {
+                cspHeader += '; script-src ' + ((cspHeader.match(/(?:^|;)\s*default-src\s*(?:'none'|([^;]*))/) || [])[1] || '');
+              }
+              cspHeader = cspHeader.replace(/(^|;)\s*script-src\s*(?:'none'|([^;]*))/gi, "$1 script-src$2 'nonce-" + nonce + "'");
+              
+              headers['content-security-policy'] = cspHeader;
             }
           
             // Close tags which may prevent script tags from working
@@ -408,7 +408,7 @@ function handleCallbacks () {
             }
             
             // problem: it can insert the <script> outside <html> and <body>
-            result += CHECK_PROBLEMS_SNIPPET;
+            result += CHECK_PROBLEMS_SNIPPET.replace('CSP_NONCE', nonce);
           }
 
           // Clone response in order to allow headers to be changed:
