@@ -3,6 +3,8 @@ Also named "The Signed File Loader That Prevents Itself From Being Disabled"
 
 [Simple demo](https://qgustavor.github.io/signed-service-workers/) (just shows if the service worker is working and adds security to [this service worker](https://gist.github.com/adactio/4d588bb8a65fa11a3ea3))
 
+**Warning!** Currently it's just an experiment. Using it on prodution can lock-in your application and/or scare out your users.
+
 ## How to use:
 
 1. The website needs to already be using service workers. If it's not check [those samples](https://github.com/GoogleChrome/samples/tree/gh-pages/service-worker) to get started;
