@@ -1,9 +1,20 @@
 # Signed Service Workers
-Also named "The Signed File Loader That Prevents Itself From Being Disabled"
+
+<p align="center">
+  <img src="https://i.imgur.com/hFTheP0.png" alt="Service Worker + ECDSA Signature + Insecure Update Detection (and optional improved secure update) = Signed Service Worker"/>
+</p>
 
 [Simple demo](https://qgustavor.github.io/signed-service-workers/) (just shows if the service worker is working and adds security to [this service worker](https://gist.github.com/adactio/4d588bb8a65fa11a3ea3))
 
 **Warning!** Currently it's just an experiment. Using it on prodution can lock-in your application and/or scare out your users.
+
+## Objectives:
+
+* Improve Service Worker security inspired on [browser extensions](https://developer.chrome.com/extensions/packaging) and [apps](https://developer.android.com/tools/publishing/app-signing.html);
+* Protect returning visitors from attacks like "server/domain credentials got stolen but code private keys are still safe" *;
+* Protect visitors from simple MITM attacks*;
+ 
+(* work better if the loaded worker generates the responses and/or checks hashes/signatures from loaded content).
 
 ## How to use:
 
@@ -30,25 +41,27 @@ Also named "The Signed File Loader That Prevents Itself From Being Disabled"
    `updatefound` event);
 5. The fetched service worker is cached for an week.
 
-## Alternative update methods:
+## Alternative Service Worker updating:
 
-By default it will use `fetch` to load the service worker, caching it in 
+By default it will use `fetch` to load the service worker, loading it via HTTPS, then caching it in 
 IndexedDB for one week. If wanted the loaded service worker can update
-itself, updating the `sw-binary` database. It's good to allow other updating
-methods beside HTTPS. WebTorrent, as an example, don't work in Service Workers,
-so if it's used it needs to be run in the loaded page then update the database
-with the new service worker.
+itself, updating the `sw-binary` database, even using other methods beside HTTPS. One example is
+WebTorrent, which, even if don't work inside Service Workers,
+can be run in the loaded page and update the service worker safety.
 
-The loader script (of course) can't be updated natively, as the web platform don't
+The loader script can't be updated natively, as the web platform don't
 support native script signing and verification. Instead the loaded service worker
 can register other service worker overwriting the existent one and immediately reload
-in order to hide the warnings.
+in order to avoid the warnings.
 
 ## Compatibility:
 
 Currently the only tested browser that is compatible is Google Chrome. Firefox isn't
-compatible yet because WebCrypto isn't enabled in workers ([bug](https://bugzilla.mozilla.org/show_bug.cgi?id=842818])).
-It also may not work with proxies which minify JavaScript files.
+compatible yet because WebCrypto isn't enabled in workers ([bug](https://bugzilla.mozilla.org/show_bug.cgi?id=842818])),
+what can be fixed with a polyfill, which isn't going to be released in this repository.
+It also may not work with proxies which minify JavaScript files (of course it's not going to work with proxies which
+rewrite or add JavaScript as it's insecure). Code is written in ES6, so maybe using some ES6 JavaScript compiler may
+be necessary (although if some browser support Service Workers it's possible that it already supports ES6).
 
 ## Debug mode:
 
