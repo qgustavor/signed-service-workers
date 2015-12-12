@@ -373,8 +373,17 @@ function handleCallbacks () {
         .then(data => {
           // Normalize response:
           originalResponse = data instanceof Response ? data : new Response(data);
-          return originalResponse.text();
+          return originalResponse.status === 0 ? originalResponse : originalResponse.text();
         }).then(result => {
+          // If status is zero then it's an opaque response:
+          if (originalResponse.status === 0) {
+            if (promise.event.request.headers.get('Accept').indexOf('text/html') !== -1) {
+              // HTML can't be returned without the snippet being added
+              return generateScriptErrorResponse();
+            }
+            return originalResponse;
+          }
+          
           // Build headers object
           let headers = {};
           originalResponse.headers.forEach((value, key) => {
@@ -385,7 +394,10 @@ function handleCallbacks () {
           headers['x-content-type-options'] = 'nosniff';
           
           // If the requested page is HTML then inject problem handler:
-          if (headers['content-type'].indexOf('text/html') !== -1) {
+          if (
+            (!headers['content-type'] && promise.event.request.headers.get('Accept').indexOf('text/html') !== -1) ||
+            (headers['content-type'] && headers['content-type'].indexOf('text/html') !== -1)
+          ) {
             // Allow the snippet to be run via CSP:
             var cspHeader = headers['content-security-policy'];
             var nonce = btoa(String.fromCharCode.apply(null, crypto.getRandomValues(new Uint8Array(16))));
