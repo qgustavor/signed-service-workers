@@ -8,13 +8,16 @@
 
 **Warning!** Currently it's just an experiment. Using it on prodution can lock-in your application and/or scare out your users.
 
-## Objectives:
+## Objective:
 
-* Improve Service Worker security inspired on [browser extensions](https://developer.chrome.com/extensions/packaging) and [apps](https://developer.android.com/tools/publishing/app-signing.html);
-* Protect returning visitors from attacks like "server/domain credentials got stolen but code private keys are still safe" *;
-* Protect visitors from simple MITM attacks*;
- 
-(* work better if the loaded worker generates the responses and/or checks hashes/signatures from loaded content).
+Improve Service Worker security inspired on [browser extensions](https://developer.chrome.com/extensions/packaging)
+and [apps](https://developer.android.com/tools/publishing/app-signing.html), protecting returning visitors from
+attacks where server or domain credentials got stolen but code private keys are still safe.
+
+In the case where the loaded worker generates auditable pages and checks hashes/signatures from loaded
+content it's intended to be almost safe as an extension based application. As it will work based only
+on standards it will not require any specific browser (just one which implemented those standards) and
+will not need to follow rules or guidelines from any store.
 
 ## How to use:
 
@@ -58,7 +61,7 @@ in order to avoid the warnings.
 
 Currently the only tested browser that is compatible is Google Chrome. Firefox isn't
 compatible yet because WebCrypto isn't enabled in workers ([bug](https://bugzilla.mozilla.org/show_bug.cgi?id=842818])),
-what can be fixed with a polyfill, which isn't going to be released in this repository.
+what can be fixed with a polyfill, which, for simplicity, isn't going to be released in this repository.
 It also may not work with proxies which minify JavaScript files (of course it's not going to work with proxies which
 rewrite or add JavaScript as it's insecure). Code is written in ES6, so maybe using some ES6 JavaScript compiler may
 be necessary (although if some browser support Service Workers it's possible that it already supports ES6).
