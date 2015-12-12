@@ -2,29 +2,60 @@
 <meta charset="utf-8">
 <title>Signed Service Workers</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{ /* from bettermotherfuckingwebsite.com */
+    margin:40px auto;
+    max-width:650px;
+    line-height:1.6;
+    font-size:18px;
+    color:#444;
+    padding:0 10px
+  }
+  h1,h2,h3{ line-height:1.2 }
+  li{ list-style: none } /* demo styles */
+  li:before { content:"\2610"; padding-right: 1em }
+  .step-ok{color: #444}
+  .step-ok:before { content:"\2611" }
+  .project-link,.project-image{text-align: center}
+  .project-link a{text-decoration:none;color:#44D;}
+  .project-link a:hover,.project-link a:focus{text-decoration:underline}
+ </style>
 <script>
-  (function () {
-    var jsStyle = document.createElement('style');
-    jsStyle.innerHTML = '#no-script{display:none}';
-    document.head.appendChild(jsStyle);
-  }());
+  document.getElementsByTagName('style')[0].innerHTML += '#no-script:before { content:"\\2611"; padding-right: 1em }';
 </script>
-<style>html{padding:1em;background:#f8f8f8;color:#333;text-align:center;font:2em sans-serif}</style>
-<div id="no-script">Service Workers can only work if JavaScript is enabled.</div>
-<div id="output-message"></div>
+<header><h1>Signed Service Workers Demo</h1></header>
+<p>This demo will try to install an loader service worker which will load and verify a normal service worker using ECDSA signing.
+It will also intercept responses from it in order to add an additional code to prevent itself to being removed or replaced.</p>
+<p class="project-image"><img src="https://i.imgur.com/hFTheP0.png" alt="Service Worker + ECDSA Signature + Insecure Update Detection (and optional improved secure update) = Signed Service Worker"></p>
+<p>Installation Steps:</p>
+<ul>
+  <li id="no-script">JavaScript is enabled</li>
+  <li id="sw-supported">Service Workers are supported and enabled</li>
+  <li id="es6-supported">ES6 JavaScript is supported *</li>
+  <li id="webcrypto-supported">WebCrypto is supported in Service Workers *</li>
+  <li id="install-finished">Service Worker is installed and working</li>
+</ul>
+<p><small>(* only required for the demo)</small></p>
+<p class="project-link"><a href="https://github.com/qgustavor/signed-service-workers">more info at project page ›</a></p>
 <script>
   (function () {
-    var outputEl = document.getElementById('output-message')
+    var getElement = document.getElementById.bind(document);
     if (!navigator.serviceWorker) {
-      outputEl.innerHTML = 'Service Workers are not supported';
       return;
     }
+    
+    getElement('sw-supported').className = 'step-ok';
   
     navigator.serviceWorker.register('loader.js', { scope: '.' })
     .then(function () {
-      outputEl.innerHTML = 'Service Worker is working!';
+      getElement('es6-supported').className = 'step-ok';
+      getElement('webcrypto-supported').className = 'step-ok';
+      getElement('install-finished').className = 'step-ok';
     }, function (err) {
-      outputEl.innerHTML = 'An error ocurred, check developer console.';
+      if (!(err instanceof SyntaxError)) {
+        getElement('es6-supported').className = 'step-ok';
+        return;
+      }
       
       // throw should work in native Promises:
       throw err;
