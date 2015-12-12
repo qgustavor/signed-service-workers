@@ -56,7 +56,7 @@ const STATES_ENUM = {
 };
 
 const PUBLIC_KEY_PROMISE = crypto.subtle.importKey('jwk',
-  {crv: 'P-384', ext: true, key_ops:['verify'], kty:'EC',
+{crv: 'P-384', ext: true, key_ops:['verify'], kty:'EC',
   x: 'g5Jj0GDpNCxXh5dVKKlDiWk6eA3mKC9s7DGofdRlJDGC1vZRIYCuU3ozGyQPzyR0',
   y: 'vWlfjwlAzBraPQ4wlZLuGXpaQht-RVXdRKPd4C0dQpB4HiPFnB6xVtHz0PL1upU6'},
   { name: 'ECDSA', namedCurve: 'P-384' }, false, ['verify']
