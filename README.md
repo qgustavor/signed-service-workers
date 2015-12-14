@@ -15,9 +15,9 @@ and [apps](https://developer.android.com/tools/publishing/app-signing.html), pro
 attacks where server or domain credentials got stolen but code private keys are still safe.
 
 In the case where the loaded worker generates auditable pages and checks hashes/signatures from loaded
-content it's intended to be almost safe as an extension based application. As it will work based only
-on standards it will not require any specific browser (just one which implemented those standards) and
-will not need to follow rules or guidelines from any store.
+content it's intended to be, in future, almost safe as an extension based application. As it will work
+based only on standards it will not require any specific browser (just one which implemented those
+standards) and will not need to follow rules or guidelines from any store.
 
 ## How to use:
 
