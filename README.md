@@ -1,7 +1,7 @@
 # Signed Service Workers
 
 <p align="center">
-  <img src="https://i.imgur.com/hFTheP0.png" alt="Service Worker + ECDSA Signature + Insecure Update Detection (and optional improved secure update) = Signed Service Worker"/>
+  <img src="https://i.imgur.com/hFTheP0.png" alt="Service Worker + ECDSA Signature + Insecure Update Detection (and optional improved secure update) = Signed Service Worker" title="diagram created in www.draw.io"/>
 </p>
 
 [Simple demo](https://qgustavor.github.io/signed-service-workers/) (just shows if the service worker is working and adds security to [this service worker](https://gist.github.com/adactio/4d588bb8a65fa11a3ea3))
